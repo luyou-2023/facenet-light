@@ -27,7 +27,7 @@ parser.add_argument('--num-valid-triplets', default = 10000, type = int, metavar
                     help = 'number of triplets for vaidation (default: 10000)')
 parser.add_argument('--embedding-size', default = 128, type = int, metavar = 'ES',
                     help = 'embedding size (default: 128)')
-parser.add_argument('--batch-size', default = 64, type = int, metavar = 'BS',
+parser.add_argument('--batch-size', default = 32, type = int, metavar = 'BS',
                     help = 'batch size (default: 128)')
 parser.add_argument('--num-workers', default = 8, type = int, metavar = 'NW',
                     help = 'number of workers (default: 8)')
@@ -35,14 +35,14 @@ parser.add_argument('--learning-rate', default = 0.001, type = float, metavar = 
                     help = 'learning rate (default: 0.001)')
 parser.add_argument('--margin', default = 0.5, type = float, metavar = 'MG',
                     help = 'margin (default: 0.5)')
-parser.add_argument('--train-root-dir', default = '/run/media/hoosiki/WareHouse2/home/mtb/datasets/vggface2/test_mtcnnpy_182', type = str,
+parser.add_argument('--train-root-dir', default = 'E:/PhotoDatasets/MSRA_Train/msra_aligned_final/', type = str,
                     help = 'path to train root dir')
-parser.add_argument('--valid-root-dir', default = '/run/media/hoosiki/WareHouse2/home/mtb/datasets/lfw/lfw_mtcnnpy_182', type = str,
+parser.add_argument('--valid-root-dir', default = 'E:/PhotoDatasets/MSRA_Test/msra_aligned_final/', type = str,
                     help = 'path to valid root dir')
-parser.add_argument('--train-csv-name', default = './datasets/test_vggface2.csv', type = str,
+parser.add_argument('--train-csv-name', default = './train_dataset.csv', type = str,
                     help = 'list of training images')
-parser.add_argument('--valid-csv-name', default = './datasets/lfw.csv', type = str,
-                    help = 'list of validtion images')
+parser.add_argument('--valid-csv-name', default = './test_dataset.csv', type = str,
+                    help = 'list of validation images')
 
 args    = parser.parse_args()
 device  = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
