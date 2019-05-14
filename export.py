@@ -1,20 +1,17 @@
 import torch
 import torchvision
+from models import FaceNetModel
 
-dummy_input = torch.randn(10, 3, 180, 180, device='cuda')
-#model = torchvision.models.alexnet(pretrained=True).cuda()
+device  = torch.device('cpu')
 
-# Providing input and output names sets the display names for values
-# within the model's graph. Setting these does not change the semantics
-# of the graph; it is only for readability.
-#
-# The inputs to the network consist of the flat list of inputs (i.e.
-# the values you would pass to the forward() method) followed by the
-# flat list of parameters. You can partially specify names, i.e. provide
-# a list here shorter than the number of inputs to the model, and we will
-# only set that subset of names, starting from the beginning.
+model = FaceNetModel(128, 10000).to(device)
+checkpoint = torch.load('C:/a/facenet-light/log/checkpoint_epoch1.pth')
 
-input_names = [ "actual_input_1" ] + [ "learned_%d" % i for i in range(16) ]
-output_names = [ "output1" ]
+model.load_state_dict(checkpoint['state_dict'])
+model.eval()
+
+dummy_input = torch.randn(1, 3, 96, 96, device = 'cpu')
+input_names = ['in']
+output_names = ['out']
 
 torch.onnx.export(model, dummy_input, "output.onnx", verbose=True, input_names=input_names, output_names=output_names)
