@@ -1,18 +1,17 @@
-# Faster, lighter Facenet for face recognition using pytorch
-This code is based on Pytorch implementation of the paper: "FaceNet: A Unified Embedding for Face Recognition and Clustering"
-Original implementation is available at https://github.com/tbmoon/facenet and https://github.com/davidsandberg/facenet
+# Faster, lighter Facenet for face recognition using PyTorch
 
-The current model uses triplet loss and reduced number of levels.
-Final recognition rates are comparable to the original numbers (+- 2%) but the resulting model is faster and smaller.
+The goal is to create a small, fast and highly compatible face recognition model for wide range of devices.
+Based on original paper "FaceNet: A Unified Embedding for Face Recognition and Clustering", this is a heavily modified model with triplet loss training and reduced number of levels.
+The final recognition rates are comparable to the original numbers (+- 2%) but the resulting model is faster and smaller.
 
-
-# Designed for deployment
+# Made for deployment
 
 As of 2019.05 the OpenCV can load Pytorch models but the support for certain layers is limited.
 Therefore this model is using only layers which are supported by ONNX and OpenCV DNN.
 
-The export.py script is there to convert the trained model into the opencv-compatible onnx format.
+# Conversion
 
+The export.py script is there to convert the trained model into the opencv-compatible onnx format.
 
 # References
 - https://github.com/tbmoon/facenet
