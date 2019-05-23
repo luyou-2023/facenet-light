@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import argparse
 import torch
@@ -17,27 +18,27 @@ parser = argparse.ArgumentParser(description = 'Face Recognition using Triplet L
 
 parser.add_argument('--start-epoch', default = 0, type = int, metavar = 'SE',
                     help = 'start epoch (default: 0)')
-parser.add_argument('--num-epochs', default = 200, type = int, metavar = 'NE',
+parser.add_argument('--num-epochs', default = 300, type = int, metavar = 'NE',
                     help = 'number of epochs to train (default: 200)')
 parser.add_argument('--num-classes', default = 10000, type = int, metavar = 'NC',
                     help = 'number of clases (default: 10000)')
-parser.add_argument('--num-train-triplets', default = 10000, type = int, metavar = 'NTT',
+parser.add_argument('--num-train-triplets', default = 50000, type = int, metavar = 'NTT',
                     help = 'number of triplets for training (default: 10000)')
-parser.add_argument('--num-valid-triplets', default = 10000, type = int, metavar = 'NVT',
+parser.add_argument('--num-valid-triplets', default = 20000, type = int, metavar = 'NVT',
                     help = 'number of triplets for vaidation (default: 10000)')
 parser.add_argument('--embedding-size', default = 128, type = int, metavar = 'ES',
                     help = 'embedding size (default: 128)')
-parser.add_argument('--batch-size', default = 64, type = int, metavar = 'BS',
+parser.add_argument('--batch-size', default = 275, type = int, metavar = 'BS',
                     help = 'batch size (default: 128)')
 parser.add_argument('--num-workers', default = 8, type = int, metavar = 'NW',
                     help = 'number of workers (default: 8)')
-parser.add_argument('--learning-rate', default = 0.001, type = float, metavar = 'LR',
+parser.add_argument('--learning-rate', default = 0.0005, type = float, metavar = 'LR',
                     help = 'learning rate (default: 0.001)')
 parser.add_argument('--margin', default = 0.5, type = float, metavar = 'MG',
                     help = 'margin (default: 0.5)')
 parser.add_argument('--train-root-dir', default = 'E:/PhotoDatasets/MSRA_Train/aligned_96px/', type = str,
                     help = 'path to train root dir')
-parser.add_argument('--valid-root-dir', default = 'E:/PhotoDatasets/MSRA_Test/aligned_96px/', type = str,
+parser.add_argument('--valid-root-dir', default = "E:/PhotoDatasets/LFW/aligned96px/", type = str,
                     help = 'path to valid root dir')
 parser.add_argument('--train-csv-name', default = './train_dataset.csv', type = str,
                     help = 'list of training images')
@@ -64,10 +65,12 @@ def main():
         print(80 * '=')
         print('Epoch [{}/{}]'.format(epoch, args.num_epochs + args.start_epoch - 1))
     
-        data_loaders, data_size = get_dataloader(args.train_root_dir,     args.valid_root_dir,
-                                                 args.train_csv_name,     args.valid_csv_name,
-                                                 args.num_train_triplets, args.num_valid_triplets,   
-                                                 args.batch_size,         args.num_workers)
+        if (epoch % 20 == 0):
+            #recreate data loader every 10 epochs
+            data_loaders, data_size = get_dataloader(args.train_root_dir, args.valid_root_dir,
+                args.train_csv_name, args.valid_csv_name,
+                args.num_train_triplets, args.num_valid_triplets,
+                args.batch_size, args.num_workers)
 
         train_valid(model, optimizer, scheduler, epoch, data_loaders, data_size)
 

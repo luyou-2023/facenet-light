@@ -113,12 +113,12 @@ def get_dataloader(train_root_dir,     valid_root_dir,
             transforms.Resize((96, 96)),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            transforms.Normalize(mean = [0.5, 0.5, 0.5], std = [0.5, 0.5, 0.5])]),
+            transforms.Normalize(mean = [0.5, 0.5, 0.5], std = [1.0, 1.0, 1.0])]),
         'valid': transforms.Compose([
             transforms.ToPILImage(),
             transforms.Resize((96, 96)),
             transforms.ToTensor(),
-            transforms.Normalize(mean = [0.5, 0.5, 0.5], std = [0.5, 0.5, 0.5])])}
+            transforms.Normalize(mean = [0.5, 0.5, 0.5], std = [1.0, 1.0, 1.0])])}
 
     face_dataset = {
         'train' : TripletFaceDataset(root_dir     = train_root_dir,
