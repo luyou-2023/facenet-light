@@ -1,6 +1,6 @@
 # Faster, lighter Facenet for face recognition using pytorch
-This code is based on Pytorch implementation of the paper: "FaceNet: A Unified Embedding for Face Recognition and Clustering".
-at https://github.com/tbmoon/facenet
+This code is based on Pytorch implementation of the paper: "FaceNet: A Unified Embedding for Face Recognition and Clustering"
+Original implementation is available at https://github.com/tbmoon/facenet and https://github.com/davidsandberg/facenet
 
 The current model uses triplet loss and reduced number of levels.
 Final recognition rates are comparable to the original numbers (+- 2%) but the resulting model is faster and smaller.
