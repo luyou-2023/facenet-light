@@ -18,17 +18,17 @@ parser = argparse.ArgumentParser(description = 'Face Recognition using Triplet L
 
 parser.add_argument('--start-epoch', default = 0, type = int, metavar = 'SE',
                     help = 'start epoch (default: 0)')
-parser.add_argument('--num-epochs', default = 300, type = int, metavar = 'NE',
+parser.add_argument('--num-epochs', default = 3000, type = int, metavar = 'NE',
                     help = 'number of epochs to train (default: 200)')
-parser.add_argument('--num-classes', default = 10000, type = int, metavar = 'NC',
+parser.add_argument('--num-classes', default = 100000, type = int, metavar = 'NC',
                     help = 'number of clases (default: 10000)')
-parser.add_argument('--num-train-triplets', default = 50000, type = int, metavar = 'NTT',
+parser.add_argument('--num-train-triplets', default = 500000, type = int, metavar = 'NTT',
                     help = 'number of triplets for training (default: 10000)')
 parser.add_argument('--num-valid-triplets', default = 20000, type = int, metavar = 'NVT',
                     help = 'number of triplets for vaidation (default: 10000)')
 parser.add_argument('--embedding-size', default = 128, type = int, metavar = 'ES',
                     help = 'embedding size (default: 128)')
-parser.add_argument('--batch-size', default = 275, type = int, metavar = 'BS',
+parser.add_argument('--batch-size', default = 400, type = int, metavar = 'BS',
                     help = 'batch size (default: 128)')
 parser.add_argument('--num-workers', default = 8, type = int, metavar = 'NW',
                     help = 'number of workers (default: 8)')
@@ -59,13 +59,18 @@ def main():
     if args.start_epoch != 0:
         checkpoint = torch.load('./log/checkpoint_epoch{}.pth'.format(args.start_epoch-1))
         model.load_state_dict(checkpoint['state_dict'])
-    
+
+    data_loaders, data_size = get_dataloader(args.train_root_dir, args.valid_root_dir,
+                                             args.train_csv_name, args.valid_csv_name,
+                                             args.num_train_triplets, args.num_valid_triplets,
+                                             args.batch_size, args.num_workers)
+
     for epoch in range(args.start_epoch, args.num_epochs + args.start_epoch):
         
         print(80 * '=')
         print('Epoch [{}/{}]'.format(epoch, args.num_epochs + args.start_epoch - 1))
     
-        if (epoch % 20 == 0):
+        if ((epoch+1) % 5 == 0):
             #recreate data loader every 10 epochs
             data_loaders, data_size = get_dataloader(args.train_root_dir, args.valid_root_dir,
                 args.train_csv_name, args.valid_csv_name,

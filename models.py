@@ -13,12 +13,12 @@ class FaceNetModel(nn.Module):
         #prune not needed
         del self.model.layer4
         del self.model.layer3
+#        del self.model.layer2
 
         self.embedding_size   = embedding_size
-        self.model.fc         = nn.Linear(18432, self.embedding_size)
-        self.model.classifier = nn.Linear(self.embedding_size, num_classes)
-    
-    
+        self.model.fc1         = nn.Linear(18432, self.embedding_size)
+#        self.model.classifier = nn.Linear(self.embedding_size, num_classes)
+
     def l2_norm(self, input):
         n = input.norm(p=2, dim=1, keepdim=True)
         result = input.div(n)
@@ -35,7 +35,7 @@ class FaceNetModel(nn.Module):
 #        x = self.model.layer3(x)
 #        x = self.model.layer4(x)
         x = x.view(x.size(0), -1)
-        x = self.model.fc(x)
+        x = self.model.fc1(x)
 
 #        self.features = x
         self.features = self.l2_norm(x)
@@ -48,6 +48,7 @@ class FaceNetModel(nn.Module):
     
     def forward_classifier(self, x):
         features = self.forward(x)
-        res      = self.model.classifier(features)
+        return features
+#        res      = self.model.classifier(features)
 
-        return res
+#        return res
