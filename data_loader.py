@@ -16,49 +16,66 @@ class TripletFaceDataset(Dataset):
 
         self.root_dir = root_dir
 
-        # self.df                = pd.read_csv(csv_name)
         self.num_triplets = num_triplets
         self.transform = transform
 
-        self.num_classes = 0
-
         start_time = time.time()
 
-        print('traversing file system')
+        print('traversing file system at %s' % root_dir)
         self.load()
         elapsed = time.time() - start_time
         print("File system traversal: %s secs" % timedelta(seconds=round(elapsed)))
-        self.cursor = np.random.choice(self.num_classes)
+
+        self.set_rand_cursor()
+        self.generate_triplets()
 
     def load(self):
-        self.face_classes = dict()
+        self.all_classes = dict()
         for path, subdirs, files in os.walk(self.root_dir):
             for name in files:
                 label = os.path.basename(path)
-                if label not in self.face_classes:
-                    self.face_classes[label] = []
-                self.face_classes[label].append(name)
+                if label not in self.all_classes:
+                    self.all_classes[label] = []
+                self.all_classes[label].append(name)
 
-        self.num_classes = len(self.face_classes)
+        self.posclasslist = list()
+        self.pos_classes = dict()
+        for name in self.all_classes:
+            if len(self.all_classes[name]) > 1:
+                self.pos_classes[name] = self.all_classes[name]
+                self.posclasslist.append(name)
 
-    def __getitem__(self, idx):
+        self.list_classes = list(self.all_classes)
 
-        list_classes = list(self.face_classes)
 
-        pos_class_index = (self.cursor + idx) % self.num_classes
-        pos_class = list_classes[ pos_class_index ]
-        poslist = self.face_classes[pos_class]
-        while len(poslist) < 2:
-            self.cursor = (self.cursor + 1) % self.num_classes
-            pos_class_index = (self.cursor + idx) % self.num_classes
-            pos_class = list_classes[pos_class_index]
-            poslist = self.face_classes[pos_class]
+    def generate_triplets(self):
+        self.triplets = list()
+        for i in range(self.num_triplets):
+            triplet = self.create_triplet(i)
+            self.triplets.append(triplet)
 
-        neg_class_index = np.random.choice(self.num_classes)
-        neg_class = list_classes[neg_class_index]
-        while neg_class == pos_class:
-            neg_class_index = np.random.choice(self.num_classes)
-            neg_class = list_classes[neg_class_index]
+    def set_rand_cursor(self):
+        self.cursor = np.random.choice(len(self.pos_classes))
+        print("shuffling cursor for %s classes, new index: %s" % (len(self.pos_classes), str(self.cursor)))
+
+    def advance_to_the_next_subset(self):
+        self.cursor = (self.cursor + self.num_triplets) % len(self.pos_classes)
+        print("advancing to the next subset for %s classes, new index: %s" % (len(self.pos_classes), str(self.cursor)))
+        self.generate_triplets()
+
+    def create_triplet(self, idx):
+
+        len_pos = len(self.posclasslist)
+        pos_class_index = (self.cursor + idx) % len_pos
+        pos_class_name = self.posclasslist[ pos_class_index ]
+        poslist = self.pos_classes[pos_class_name]
+
+        num_all_classes = len(self.all_classes)
+        neg_class_index = np.random.choice(num_all_classes)
+        neg_class_name = self.list_classes[neg_class_index]
+        while neg_class_name == pos_class_name:
+            neg_class_index = np.random.choice(num_all_classes)
+            neg_class_name = self.list_classes[neg_class_index]
 
 
         pos_index = np.random.choice(len(poslist))
@@ -66,22 +83,24 @@ class TripletFaceDataset(Dataset):
         while pos_index == anc_index:
             anc_index = np.random.choice(len(poslist))
 
-        neglist = self.face_classes[neg_class]
+        neglist = self.all_classes[neg_class_name]
         neg_index = np.random.choice(len(neglist))
 
-        pos_img = os.path.join(self.root_dir, pos_class + '/' + str(self.face_classes[pos_class][pos_index]))
-        anc_img = os.path.join(self.root_dir, pos_class + '/' + str(self.face_classes[pos_class][anc_index]))
-        neg_img = os.path.join(self.root_dir, neg_class + '/' + str(self.face_classes[neg_class][neg_index]))
+        pos_img = os.path.join(self.root_dir, pos_class_name + '/' + str(self.pos_classes[pos_class_name][pos_index]))
+        anc_img = os.path.join(self.root_dir, pos_class_name + '/' + str(self.pos_classes[pos_class_name][anc_index]))
+        neg_img = os.path.join(self.root_dir, neg_class_name + '/' + str(self.all_classes[neg_class_name][neg_index]))
+
+        return [pos_img, anc_img, neg_img ]
+
+    def __getitem__(self, idx):
+
+        pos_img, anc_img, neg_img = self.triplets[idx]
 
         anc_img = io.imread(anc_img)
         pos_img = io.imread(pos_img)
         neg_img = io.imread(neg_img)
 
-        pos_class = torch.from_numpy(np.array([pos_class_index]).astype('long'))
-        neg_class = torch.from_numpy(np.array([neg_class_index]).astype('long'))
-
-        sample = {'anc_img': anc_img, 'pos_img': pos_img, 'neg_img': neg_img, 'pos_class': pos_class,
-                  'neg_class': neg_class}
+        sample = {'anc_img': anc_img, 'pos_img': pos_img, 'neg_img': neg_img}
 
         if self.transform:
             sample['anc_img'] = self.transform(sample['anc_img'])

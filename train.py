@@ -1,3 +1,4 @@
+import datetime
 import sys
 import numpy as np
 import argparse
@@ -22,17 +23,17 @@ parser.add_argument('--num-epochs', default = 3000, type = int, metavar = 'NE',
                     help = 'number of epochs to train (default: 200)')
 parser.add_argument('--num-classes', default = 100000, type = int, metavar = 'NC',
                     help = 'number of clases (default: 10000)')
-parser.add_argument('--num-train-triplets', default = 500000, type = int, metavar = 'NTT',
+parser.add_argument('--num-train-triplets', default = 1000000, type = int, metavar = 'NTT',
                     help = 'number of triplets for training (default: 10000)')
 parser.add_argument('--num-valid-triplets', default = 20000, type = int, metavar = 'NVT',
                     help = 'number of triplets for vaidation (default: 10000)')
 parser.add_argument('--embedding-size', default = 128, type = int, metavar = 'ES',
                     help = 'embedding size (default: 128)')
-parser.add_argument('--batch-size', default = 400, type = int, metavar = 'BS',
+parser.add_argument('--batch-size', default = 800, type = int, metavar = 'BS',
                     help = 'batch size (default: 128)')
 parser.add_argument('--num-workers', default = 8, type = int, metavar = 'NW',
                     help = 'number of workers (default: 8)')
-parser.add_argument('--learning-rate', default = 0.0005, type = float, metavar = 'LR',
+parser.add_argument('--learning-rate', default = 0.0002, type = float, metavar = 'LR',
                     help = 'learning rate (default: 0.001)')
 parser.add_argument('--margin', default = 0.5, type = float, metavar = 'MG',
                     help = 'margin (default: 0.5)')
@@ -54,7 +55,7 @@ def main():
     
     model     = FaceNetModel(embedding_size = args.embedding_size, num_classes = args.num_classes).to(device)
     optimizer = optim.Adam(model.parameters(), lr = args.learning_rate)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size = 50, gamma = 0.1)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size = 50, gamma = 0.2)
     
     if args.start_epoch != 0:
         checkpoint = torch.load('./log/checkpoint_epoch{}.pth'.format(args.start_epoch-1))
@@ -68,14 +69,12 @@ def main():
     for epoch in range(args.start_epoch, args.num_epochs + args.start_epoch):
         
         print(80 * '=')
+        print(datetime.datetime.now().time())
         print('Epoch [{}/{}]'.format(epoch, args.num_epochs + args.start_epoch - 1))
     
-        if ((epoch+1) % 5 == 0):
-            #recreate data loader every 10 epochs
-            data_loaders, data_size = get_dataloader(args.train_root_dir, args.valid_root_dir,
-                args.train_csv_name, args.valid_csv_name,
-                args.num_train_triplets, args.num_valid_triplets,
-                args.batch_size, args.num_workers)
+        if ((epoch+1) % 10 == 0):
+            data_loaders['train'].dataset.advance_to_the_next_subset()
+            data_loaders['valid'].dataset.advance_to_the_next_subset()
 
         train_valid(model, optimizer, scheduler, epoch, data_loaders, data_size)
 
@@ -101,9 +100,7 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size):
             pos_img = batch_sample['pos_img'].to(device)
             neg_img = batch_sample['neg_img'].to(device)
         
-            pos_cls = batch_sample['pos_class'].to(device)
-            neg_cls = batch_sample['neg_class'].to(device)
-                            
+
             with torch.set_grad_enabled(phase == 'train'):
             
                 # anc_embed, pos_embed and neg_embed are encoding(embedding) of image
@@ -125,16 +122,9 @@ def train_valid(model, optimizer, scheduler, epoch, dataloaders, data_size):
                 pos_hard_embed = pos_embed[hard_triplets].to(device)
                 neg_hard_embed = neg_embed[hard_triplets].to(device)
             
-                anc_hard_img   = anc_img[hard_triplets].to(device)
-                pos_hard_img   = pos_img[hard_triplets].to(device)
-                neg_hard_img   = neg_img[hard_triplets].to(device)
-            
-                pos_hard_cls   = pos_cls[hard_triplets].to(device)
-                neg_hard_cls   = neg_cls[hard_triplets].to(device)
-            
-                anc_img_pred   = model.forward_classifier(anc_hard_img).to(device)
-                pos_img_pred   = model.forward_classifier(pos_hard_img).to(device)
-                neg_img_pred   = model.forward_classifier(neg_hard_img).to(device)
+                # anc_hard_img   = anc_img[hard_triplets].to(device)
+                # pos_hard_img   = pos_img[hard_triplets].to(device)
+                # neg_hard_img   = neg_img[hard_triplets].to(device)
             
                 triplet_loss   = TripletLoss(args.margin).forward(anc_hard_embed, pos_hard_embed, neg_hard_embed).to(device)
         
