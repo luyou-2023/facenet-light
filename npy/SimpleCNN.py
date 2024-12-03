@@ -49,9 +49,11 @@ class SimpleCNN:
             for j in range(output_width):
                 region = input_image_padded[i * stride:i * stride + filter_height, j * stride:j * stride + filter_width, :]
                 for k in range(filters.shape[0]):  # 每个卷积核
-                    output[i, j, k] = np.sum(region * filters[k]) + bias[k]  # 计算卷积结果并加上偏置
+                    # 修改：逐通道乘法后求和，确保维度匹配
+                    output[i, j, k] = np.sum(region * filters[k, :, :, :]) + bias[k]  # 计算卷积结果并加上偏置
 
         return output
+
 
     def max_pool2d(self, input_image, size=2, stride=2):
         """
